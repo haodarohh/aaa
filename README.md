@@ -1,1 +1,1 @@
-# AAA Test linter for Golang
+# AAA Test linter for Go
