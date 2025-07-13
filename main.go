@@ -6,5 +6,7 @@ import (
 )
 
 func main() {
-	singlechecker.Main(aaatestlint.Analyzer)
+	l, _ := aaatestlint.New(nil)
+	a, _ := l.BuildAnalyzers()
+	singlechecker.Main(a[0])
 }
