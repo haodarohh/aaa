@@ -9,78 +9,69 @@ import (
 )
 
 var Analyzer = &analysis.Analyzer{
-	Name: "aaatestlint",
-	Doc:  "checks that test functions follow Act and Assert comments, with optional Arrange",
+	Name: "aaatest",
+	Doc:  "checks unit test functions for // Arrange, // Act, and // Assert comments in correct order",
 	Run:  run,
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	for _, file := range pass.Files {
 		for _, decl := range file.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Recv != nil || !isTestFunc(fn) {
+			funcDecl, ok := decl.(*ast.FuncDecl)
+			if !ok || !strings.HasPrefix(funcDecl.Name.Name, "Test") || funcDecl.Body == nil {
 				continue
 			}
 
-			positions := map[string]int{}
-			order := []string{}
-
-			for _, group := range file.Comments {
-				for _, comment := range group.List {
-					if !commentInFunc(pass.Fset, comment, fn) {
+			var found []string
+			for _, commentGroup := range file.Comments {
+				for _, comment := range commentGroup.List {
+					if !positionInFunc(funcDecl, comment.Pos()) {
 						continue
 					}
 
-					text := strings.TrimSpace(strings.TrimPrefix(comment.Text, "//"))
-					switch text {
-					case "Arrange", "Act", "Assert":
-						positions[text] = pass.Fset.Position(comment.Pos()).Line
-						order = append(order, text)
+					trimmed := strings.TrimSpace(strings.TrimPrefix(comment.Text, "//"))
+
+					switch {
+					case strings.HasPrefix(trimmed, "arrange"):
+						found = append(found, "arrange")
+					case strings.HasPrefix(trimmed, "act"):
+						found = append(found, "act")
+					case strings.HasPrefix(trimmed, "assert"):
+						found = append(found, "assert")
 					}
 				}
 			}
 
-			if _, ok := positions["Act"]; !ok {
-				pass.Reportf(fn.Pos(), "missing '// Act' section in test")
-				continue
-			}
-			if _, ok := positions["Assert"]; !ok {
-				pass.Reportf(fn.Pos(), "missing '// Assert' section in test")
-				continue
-			}
-
-			// Enforce order
-			actIndex := indexOf(order, "Act")
-			assertIndex := indexOf(order, "Assert")
-			if actIndex == -1 || assertIndex == -1 || actIndex > assertIndex {
-				pass.Reportf(fn.Pos(), "// Act must appear before // Assert")
+			// Check order
+			order := map[string]int{"arrange": 0, "act": 1, "assert": 2}
+			last := -1
+			for _, keyword := range found {
+				if order[keyword] < last {
+					pass.Reportf(funcDecl.Pos(), "invalid AAA pattern order: must follow arrange -> act -> assert\n")
+					break
+				}
+				last = order[keyword]
 			}
 
-			if arrangeIndex := indexOf(order, "Arrange"); arrangeIndex != -1 && arrangeIndex > actIndex {
-				pass.Reportf(fn.Pos(), "// Arrange must appear before // Act")
+			// Must contain at least Act and Assert in order
+			hasAct := false
+			hasAssert := false
+			for _, k := range found {
+				if k == "act" {
+					hasAct = true
+				}
+				if k == "assert" {
+					hasAssert = true
+				}
+			}
+			if !(hasAct && hasAssert) {
+				pass.Reportf(funcDecl.Pos(), "missing required keywords: need at least act and assert\n")
 			}
 		}
 	}
-
 	return nil, nil
 }
 
-func isTestFunc(fn *ast.FuncDecl) bool {
-	return fn.Name != nil &&
-		strings.HasPrefix(fn.Name.Name, "Test") &&
-		fn.Type.Results == nil &&
-		len(fn.Type.Params.List) == 1
-}
-
-func indexOf(slice []string, target string) int {
-	for i, s := range slice {
-		if s == target {
-			return i
-		}
-	}
-	return -1
-}
-
-func commentInFunc(fset *token.FileSet, comment *ast.Comment, fn *ast.FuncDecl) bool {
-	return comment.Pos() >= fn.Body.Lbrace && comment.End() <= fn.Body.Rbrace
+func positionInFunc(fn *ast.FuncDecl, pos token.Pos) bool {
+	return fn.Body != nil && pos >= fn.Body.Pos() && pos <= fn.Body.End()
 }

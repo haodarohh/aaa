@@ -2,34 +2,32 @@ package a
 
 import "testing"
 
-func TestExample(t *testing.T) {
-	// Act
-	t.Log("doing something")
-	// Arrange
-	t.Log("setup") // want "// Arrange must appear before // Act"
-	// Assert
-	t.Log("checking result")
+func TestSomethingGood(t *testing.T) {
+	// arrange
+	// act
+	// assert
 }
 
-func TestMissingAct(t *testing.T) {
-	// Arrange
-	t.Log("setup")
-	// Assert
-	t.Log("checking result") // want "missing '// Act' section in test"
+func TestAnotherGoodOne(t *testing.T) {
+	// act
+	// assert
 }
 
-func TestMissingAssert(t *testing.T) {
-	// Arrange
-	t.Log("setup")
-	// Act
-	t.Log("doing something") // want "missing '// Assert' section in test"
+func TestMissingAssert(t *testing.T) { // want `missing required keywords: need at least act and assert\n`
+	// arrange
+	// act
 }
 
-func TestValidOrder(t *testing.T) {
+func TestWrongOrder(t *testing.T) { //  want `invalid AAA pattern order: must follow arrange -> act -> assert\n`
+	// assert
+	// act
+}
+
+func TestWrongCase(t *testing.T) { // want `missing required keywords: need at least act and assert\n`
 	// Arrange
-	t.Log("setup")
 	// Act
-	t.Log("doing something")
 	// Assert
-	t.Log("checking result")
+}
+
+func TestNoComments(t *testing.T) { // want `missing required keywords: need at least act and assert\n`
 }
