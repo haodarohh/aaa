@@ -5,53 +5,16 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/golangci/plugin-module-register/register"
 	"golang.org/x/tools/go/analysis"
 )
 
-func init() {
-	register.Plugin("aaa", New)
+var Analyzer = &analysis.Analyzer{
+	Name: "aaa",
+	Doc:  "checks unit test functions for // Arrange, // Act, and // Assert comments in correct order",
+	Run:  run,
 }
 
-type Settings struct {
-	One string `json:"one"`
-}
-
-type aaaPlugin struct {
-	settings Settings
-}
-
-func New(settings any) (register.LinterPlugin, error) {
-	// The configuration type will be map[string]any or []interface, it depends on your configuration.
-	// You can use https://github.com/go-viper/mapstructure to convert map to struct.
-
-	s, err := register.DecodeSettings[Settings](settings)
-	if err != nil {
-		return nil, err
-	}
-
-	return &aaaPlugin{settings: s}, nil
-}
-
-func (f *aaaPlugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
-	return []*analysis.Analyzer{
-		{
-			Name: "aaatest",
-			Doc:  "checks unit test functions for // Arrange, // Act, and // Assert comments in correct order",
-			Run:  f.run,
-		},
-	}, nil
-}
-
-func (f *aaaPlugin) GetLoadMode() string {
-	// NOTE: the mode can be `register.LoadModeSyntax` or `register.LoadModeTypesInfo`.
-	// - `register.LoadModeSyntax`: if the linter doesn't use types information.
-	// - `register.LoadModeTypesInfo`: if the linter uses types information.
-
-	return register.LoadModeSyntax
-}
-
-func (f *aaaPlugin) run(pass *analysis.Pass) (any, error) {
+func run(pass *analysis.Pass) (any, error) {
 	for _, file := range pass.Files {
 		for _, decl := range file.Decls {
 			funcDecl, ok := decl.(*ast.FuncDecl)

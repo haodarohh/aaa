@@ -1,0 +1,14 @@
+version: "2"
+linters:
+  settings:
+    custom:
+      aaa:
+        path: ./main.so
+        description: The AAA pattern linter
+        original-url: https://github.com/haodarohh/aaa
+        settings:  # Settings are optional.
+          one: Foo
+          two:
+            - name: Bar
+          three:
+            name: Bar

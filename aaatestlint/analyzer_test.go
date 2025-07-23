@@ -12,7 +12,5 @@ import (
 func TestAAACommentCheck(t *testing.T) {
 	_, filename, _, _ := runtime.Caller(0)
 	testdata := filepath.Join(filepath.Dir(filename), "..", "testdata")
-	l, _ := aaatestlint.New(nil)
-	a, _ := l.BuildAnalyzers()
-	analysistest.Run(t, testdata, a[0], "a")
+	analysistest.Run(t, testdata, aaatestlint.Analyzer, "a")
 }
