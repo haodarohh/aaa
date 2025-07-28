@@ -1,0 +1,4 @@
+version: v2.3.0
+plugins:
+  - module: 'github.com/haodarohh/aaa/aaatestlint'
+    version: latest

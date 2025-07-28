@@ -1,0 +1,9 @@
+version: "2"
+linters:
+  enable:
+    - aaa
+  settings:
+    custom:
+      aaa:
+        type: "module"
+        description: The AAA pattern linter

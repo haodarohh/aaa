@@ -5,8 +5,47 @@ import (
 	"go/token"
 	"strings"
 
+	"github.com/golangci/plugin-module-register/register"
 	"golang.org/x/tools/go/analysis"
 )
+
+func init() {
+	register.Plugin("aaa", New)
+}
+
+type Settings struct {
+	One   string `json:"one"`
+	Two   int    `json:"two"`
+	Three bool   `json:"three"`
+}
+
+type Plugin struct {
+	settings Settings
+}
+
+func New(settings any) (register.LinterPlugin, error) {
+	// The configuration type will be map[string]any or []interface, it depends on your configuration.
+	// You can use https://github.com/go-viper/mapstructure to convert map to struct.
+
+	s, err := register.DecodeSettings[Settings](settings)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Plugin{settings: s}, nil
+}
+
+func (p *Plugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
+	return []*analysis.Analyzer{Analyzer}, nil
+}
+
+func (p *Plugin) GetLoadMode() string {
+	// NOTE: the mode can be `register.LoadModeSyntax` or `register.LoadModeTypesInfo`.
+	// - `register.LoadModeSyntax`: if the linter doesn't use types information.
+	// - `register.LoadModeTypesInfo`: if the linter uses types information.
+
+	return register.LoadModeSyntax
+}
 
 var Analyzer = &analysis.Analyzer{
 	Name: "aaa",
