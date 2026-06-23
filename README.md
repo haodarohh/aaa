@@ -1,5 +1,27 @@
 # AAA Test linter for Golang
 
+## Installation
+
+Requires Go 1.24.5 or later. Install `golangci-lint` separately if you want to run this linter through a golangci-lint plugin.
+
+```shell
+git clone https://github.com/haodarohh/AAA.git
+cd AAA
+go mod download
+```
+
+To install the standalone analyzer binary:
+
+```shell
+go install github.com/haodarohh/aaa@latest
+```
+
+For local development, install it from the repository checkout:
+
+```shell
+go install .
+```
+
 ## Usage
 
 #### Go Plugin Syetem
